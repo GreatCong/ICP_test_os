@@ -51,13 +51,14 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "AD7606.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -105,17 +106,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM3_Init();
   MX_ADC1_Init();
   MX_SPI3_Init();
   MX_USART6_UART_Init();
+  MX_SPI1_Init();
+  MX_TIM2_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(BT_EN_GPIO_Port,BT_EN_Pin,GPIO_PIN_SET);
 	HAL_GPIO_WritePin(WIFI_EN_GPIO_Port,WIFI_EN_Pin,GPIO_PIN_SET);
-//	HAL_GPIO_WritePin(ICP_EN_GPIO_Port,ICP_EN_Pin,GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ICP_EN_GPIO_Port,ICP_EN_Pin,GPIO_PIN_SET);
+  AD_CONVEST_PWM_Init(10);//10kHz	
 
   HAL_Delay(5000);//ÑÓ³¤5sÔÙ¿ªÆôÀ¶ÑÀ
+	
+	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);
+	AD7606_Init();
+	
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in freertos.c) */

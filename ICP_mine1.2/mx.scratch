@@ -190,6 +190,10 @@
                                 </file>
 
                                 <file>
+                                 <name>..\Src\dma.c</name>
+                                </file>
+
+                                <file>
                                  <name>..\Src\freertos.c</name>
                                 </file>
 

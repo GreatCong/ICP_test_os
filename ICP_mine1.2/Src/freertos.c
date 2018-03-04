@@ -63,8 +63,6 @@ osThreadId clientTaskHandle;
 osThreadId mallocTaskHandle;
 osMutexId buf_mutexHandle;
 
-void test_netWorkTask(void);//≤‚ ‘Wifi¥´ ‰
-
 /* USER CODE BEGIN Variables */
 #define SIZE 53
 /* USER CODE END Variables */
@@ -303,13 +301,13 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(appTask, StartAppTask, osPriorityAboveNormal, 0, 256);
   appTaskHandle = osThreadCreate(osThread(appTask), NULL);
 
-//  /* definition and creation of clientTask */
-//  osThreadDef(clientTask, StartClientTask, osPriorityNormal, 0, 256);
-//  clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
+  /* definition and creation of clientTask */
+  osThreadDef(clientTask, StartClientTask, osPriorityNormal, 0, 256);
+  clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
 
-//  /* definition and creation of mallocTask */
-//  osThreadDef(mallocTask, StartMallocTask, osPriorityNormal, 0, 128);
-//  mallocTaskHandle = osThreadCreate(osThread(mallocTask), NULL);
+  /* definition and creation of mallocTask */
+  osThreadDef(mallocTask, StartMallocTask, osPriorityNormal, 0, 128);
+  mallocTaskHandle = osThreadCreate(osThread(mallocTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

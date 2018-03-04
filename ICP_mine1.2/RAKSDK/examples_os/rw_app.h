@@ -96,3 +96,6 @@ extern rw_WlanConnect_t  conn;
 
 void delay_ms(int count);
 
+//my functions
+void test_netWorkTask(void);//²âÊÔWifi´«Êä
+

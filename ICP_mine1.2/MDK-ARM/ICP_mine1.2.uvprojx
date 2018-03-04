@@ -369,7 +369,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32F405xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;../Drivers/CMSIS/Include;..\RAKSDK\examples_os;..\RAKSDK\rw_lib;..\RAKSDK\common\include;..\RAKSDK\bsp</IncludePath>
+              <IncludePath>../Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;           ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;           ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;           ../Middlewares/Third_Party/FreeRTOS/Source/include;           ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS;           ../Drivers/CMSIS/Include;           ..\RAKSDK\examples_os;           ..\RAKSDK\rw_lib;           ..\RAKSDK\common\include;           ..\RAKSDK\bsp;           ..\Hardware\AD7606</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -511,6 +511,11 @@
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/dma.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -691,6 +696,16 @@
               <FileName>tcp_udp.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\RAKSDK\examples_os\tcp_udp.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>AD7606</GroupName>
+          <Files>
+            <File>
+              <FileName>ad7606.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\AD7606\ad7606.c</FilePath>
             </File>
           </Files>
         </Group>

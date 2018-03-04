@@ -13,6 +13,7 @@
 **/
 #include "rw_app.h"
 
+#include "AD7606.h"
 
 static uint32_t _init_interface(void);
 static uint32_t _deinit_interface(void);
@@ -135,6 +136,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
 		DRIVER_INT_HANDLE();
   }
+	
+  //AD7606 Handle
+	if(GPIO_Pin == AD_BUSY_Pin){
+	  AD7606_handle();
+	}
 }
 
 
