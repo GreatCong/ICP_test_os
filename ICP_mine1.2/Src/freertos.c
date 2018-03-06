@@ -54,25 +54,26 @@
 /* USER CODE BEGIN Includes */     
 #include "rw_app.h"
 #include "tim.h"
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
 osThreadId defaultTaskHandle;
 osThreadId appTaskHandle;
-osThreadId clientTaskHandle;
-osThreadId mallocTaskHandle;
+osThreadId test_TaskHandle;
 osMutexId buf_mutexHandle;
 
 /* USER CODE BEGIN Variables */
 #define SIZE 53
+void StartClientTask(void const * argument);
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
 void StartDefaultTask(void const * argument);
 void StartAppTask(void const * argument);
-void StartClientTask(void const * argument);
-void StartMallocTask(void const * argument);
+void StartTest_Task(void const * argument);
 
+extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
@@ -301,13 +302,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(appTask, StartAppTask, osPriorityAboveNormal, 0, 256);
   appTaskHandle = osThreadCreate(osThread(appTask), NULL);
 
-  /* definition and creation of clientTask */
-  osThreadDef(clientTask, StartClientTask, osPriorityNormal, 0, 256);
-  clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
-
-  /* definition and creation of mallocTask */
-  osThreadDef(mallocTask, StartMallocTask, osPriorityNormal, 0, 128);
-  mallocTaskHandle = osThreadCreate(osThread(mallocTask), NULL);
+  /* definition and creation of test_Task */
+  osThreadDef(test_Task, StartTest_Task, osPriorityNormal, 0, 128);
+  test_TaskHandle = osThreadCreate(osThread(test_Task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -321,13 +318,15 @@ void MX_FREERTOS_Init(void) {
 /* StartDefaultTask function */
 void StartDefaultTask(void const * argument)
 {
+  /* init code for USB_DEVICE */
+//  MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for(;;)
   {
 		get_xtask_state();//获取任务的状态
-		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
+//		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
 		//HAL_Delay(1000);
     osDelay(5000);//每隔5秒获取一次每个任务的状态信息
   }
@@ -372,7 +371,69 @@ test_netWorkTask();
   /* USER CODE END StartAppTask */
 }
 
-/* StartClientTask function */
+/* StartTest_Task function */
+void StartTest_Task(void const * argument)
+{
+  /* USER CODE BEGIN StartTest_Task */
+	uint8_t buf;
+  /* Infinite loop */
+  for(;;)
+  {
+//		uint8_t xx[] = "abc";
+//	  UsbSendData(xx,3);
+		UsbReceiveData(&buf);
+		if(buf=='Y')
+		{
+			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+			buf=0;
+		}
+		else if(buf=='N') 
+		{
+			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
+			buf=0;   
+		}
+		osDelay(10);
+  }
+  /* USER CODE END StartTest_Task */
+}
+
+/* USER CODE BEGIN Application */
+
+   void test_netWorkTask(void)//测试Wifi传输
+	 {
+	     platform_init(); 
+    rw_appdemo_context_init();
+
+    rw_network_startSTA();
+		#define TCPC_TEST//测试TCP clint
+		 
+		#ifdef  TCPS_TEST
+				creat_tcpsTask();
+		#endif  
+		#ifdef  TCPC_TEST
+				creat_tcpcTask();
+		#endif
+		#ifdef  UDPS_TEST
+				 creat_udpsTask();
+		#endif
+		#ifdef  UDPC_TEST
+				 creat_udpcTask();
+		#endif 
+    
+    while(1) {
+      
+        if (app_demo_ctx.rw_connect_status == STATUS_FAIL || app_demo_ctx.rw_ipquery_status == STATUS_FAIL) {
+          DPRINTF("reconnect and ipquery...\r\n");
+          rw_appdemo_context_init();   
+          rw_sysDriverReset();
+          rw_network_init(&conn, DHCP_CLIENT, NULL);
+        }
+        rw_sysSleep(100);
+    }
+		
+	 }
+	 
+	 /* StartClientTask function */
 void StartClientTask(void const * argument)
 {
   /* USER CODE BEGIN StartClientTask */
@@ -456,54 +517,6 @@ reconnect:
     }
   /* USER CODE END StartClientTask */
 }
-
-/* StartMallocTask function */
-void StartMallocTask(void const * argument)
-{
-  /* USER CODE BEGIN StartMallocTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartMallocTask */
-}
-
-/* USER CODE BEGIN Application */
-
-   void test_netWorkTask(void)//测试Wifi传输
-	 {
-	     platform_init(); 
-    rw_appdemo_context_init();
-
-    rw_network_startSTA();
-		#define TCPC_TEST//测试TCP clint
-		 
-		#ifdef  TCPS_TEST
-				creat_tcpsTask();
-		#endif  
-		#ifdef  TCPC_TEST
-				creat_tcpcTask();
-		#endif
-		#ifdef  UDPS_TEST
-				 creat_udpsTask();
-		#endif
-		#ifdef  UDPC_TEST
-				 creat_udpcTask();
-		#endif 
-    
-    while(1) {
-      
-        if (app_demo_ctx.rw_connect_status == STATUS_FAIL || app_demo_ctx.rw_ipquery_status == STATUS_FAIL) {
-          DPRINTF("reconnect and ipquery...\r\n");
-          rw_appdemo_context_init();   
-          rw_sysDriverReset();
-          rw_network_init(&conn, DHCP_CLIENT, NULL);
-        }
-        rw_sysSleep(100);
-    }
-		
-	 }
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

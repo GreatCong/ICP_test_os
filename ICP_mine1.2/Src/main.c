@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
+  * @file           : main.c
+  * @brief          : Main program body
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -45,20 +45,21 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "adc.h"
-#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
+#include "usb_device.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
 #include "AD7606.h"
+#include "bluetooth.h"
+#include "usbd_cdc_if.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -81,9 +82,13 @@ void MX_FREERTOS_Init(void);
 
 /* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  *
+  * @retval None
+  */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -106,24 +111,28 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM3_Init();
   MX_ADC1_Init();
   MX_SPI3_Init();
   MX_USART6_UART_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
-
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(BT_EN_GPIO_Port,BT_EN_Pin,GPIO_PIN_SET);
 	HAL_GPIO_WritePin(WIFI_EN_GPIO_Port,WIFI_EN_Pin,GPIO_PIN_SET);
-	HAL_GPIO_WritePin(ICP_EN_GPIO_Port,ICP_EN_Pin,GPIO_PIN_SET);
+	//HAL_GPIO_WritePin(ICP_EN_GPIO_Port,ICP_EN_Pin,GPIO_PIN_SET);
+	AD7606_Init();
+  PowerOn(ICP);
+	
+	//注意如果在freeRTOS的default Task中初始化了,串口助手会无法打开，而且使用USB功能需要将heap调大，否则会出现问题
+	MX_USB_DEVICE_Init();//初始化USB 在freeRTOS中初始化了
+	HAL_Delay(200);
   AD_CONVEST_PWM_Init(10);//10kHz	
+	//SetBluetoothBaud(9600);//设置蓝牙的波特率
 
   HAL_Delay(5000);//延长5s再开启蓝牙
 	
-	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);
-	AD7606_Init();
+//	HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_4);
 	
   /* USER CODE END 2 */
 
@@ -137,6 +146,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	uint8_t buf;
   while (1)
   {
   /* USER CODE END WHILE */
@@ -145,14 +155,30 @@ int main(void)
 		//不会执行到这里来的
 //		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
 //		HAL_Delay(1000);
+		HAL_Delay(10);
+		UsbReceiveData(&buf);
+		if(buf=='Y')
+		{
+			HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
+			PowerOn(LED);
+			buf=0;
+		}
+		else if(buf=='N') 
+		{
+			HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_4);
+			PowerOff(LED);
+			buf=0;			
+		}
 
   }
   /* USER CODE END 3 */
 
 }
 
-/** System Clock Configuration
-*/
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
 
@@ -167,15 +193,14 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -221,25 +246,26 @@ void SystemClock_Config(void)
   */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-/* USER CODE BEGIN Callback 0 */
+  /* USER CODE BEGIN Callback 0 */
 
-/* USER CODE END Callback 0 */
+  /* USER CODE END Callback 0 */
   if (htim->Instance == TIM1) {
     HAL_IncTick();
   }
-/* USER CODE BEGIN Callback 1 */
+  /* USER CODE BEGIN Callback 1 */
   if(htim->Instance == TIM3) {
     Tim3Counter++;
   }
-/* USER CODE END Callback 1 */
+  /* USER CODE END Callback 1 */
 }
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @param  None
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
   * @retval None
   */
-void _Error_Handler(char * file, int line)
+void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
@@ -248,20 +274,19 @@ void _Error_Handler(char * file, int line)
 		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
 		HAL_Delay(10000);
   }
-  /* USER CODE END Error_Handler_Debug */ 
+  /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
-
+#ifdef  USE_FULL_ASSERT
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t* file, uint32_t line)
-{
+{ 
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
@@ -270,17 +295,15 @@ void assert_failed(uint8_t* file, uint32_t line)
 		osDelay(1000);
 	}
   /* USER CODE END 6 */
-
 }
-
-#endif
-
-/**
-  * @}
-  */ 
+#endif /* USE_FULL_ASSERT */
 
 /**
   * @}
-*/ 
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

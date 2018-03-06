@@ -17,6 +17,14 @@ PA4 -I- BUSY
 PA2 -O- ICP_EN
 */
 
+/*USB*/
+#include "usbd_cdc_if.h"
+
+#define TX_BUF_LEN 1024*6
+uint8_t txBuf[TX_BUF_LEN];//USB传输的缓冲数组
+uint16_t txCount=0;
+/*USB end*/
+
 #define OS2(State)	HAL_GPIO_WritePin(AD_OS2_GPIO_Port,AD_OS2_Pin,(GPIO_PinState)State)
 #define OS1(State)	HAL_GPIO_WritePin(AD_OS1_GPIO_Port,AD_OS1_Pin,(GPIO_PinState)State)
 #define OS0(State)	HAL_GPIO_WritePin(AD_OS0_GPIO_Port,AD_OS0_Pin,(GPIO_PinState)State)
@@ -83,25 +91,25 @@ void AD7606_Read4CH(void)
 }
 #else
 void AD7606_Read4CH(void){
-//  uint8_t 						dummy;
-//  uint8_t 						recv;
-//	uint8_t 						i;
+  uint8_t 						dummy;
+  uint8_t 						recv;
+	uint8_t 						i;
 	HAL_StatusTypeDef status = HAL_OK;
 	
 	SPI_CS(0);//chip select
-//	for(i=0;i<8;i++){
-//	  SPI_CS(0);//chip select
-//		while(HAL_SPI_GetState(&hspi1)==HAL_SPI_STATE_BUSY_TX){};//等待发送缓冲区空
-//		
-//	  status = HAL_SPI_TransmitReceive(&hspi1,&dummy,&recv,1,5000);
-//	  assert_param(status == HAL_OK);		
-//		
-//		SPI_CS(1);//chip deselect
-//		AD7606_BUF.bytebuf[i] = recv;
-//	}
-	
-	status = HAL_SPI_Receive_DMA(&hspi1,AD7606_BUF.bytebuf,8);//HAL_SPI_Receive自带向从机发送空字节
-  assert_param(status == HAL_OK);	//硬件SPI没有调通？？注意OS情况下，DMA如果被OS管理了，会有问题
+	for(i=0;i<8;i++){
+	  SPI_CS(0);//chip select
+		while(HAL_SPI_GetState(&hspi1)==HAL_SPI_STATE_BUSY_TX){};//等待发送缓冲区空
+		
+	  status = HAL_SPI_TransmitReceive(&hspi1,&dummy,&recv,1,5000);
+	  assert_param(status == HAL_OK);		
+		
+		SPI_CS(1);//chip deselect
+		AD7606_BUF.bytebuf[i] = recv;
+	}
+	//DMA 有数据，但是数据有问题??
+//	status = HAL_SPI_Receive_DMA(&hspi1,AD7606_BUF.bytebuf,8);//HAL_SPI_Receive自带向从机发送空字节
+//  assert_param(status == HAL_OK);	//硬件SPI没有调通？？注意OS情况下，DMA如果被OS管理了，会有问题
 	SPI_CS(1);//chip deselect
 	
 }
@@ -197,15 +205,28 @@ void AD7606_GPIO_SPI(void){
 //  @ input:
 //  @ output:
 //  @ note: 在rw_lib_platform.c中，wifi模块的中断中调用
+//          注意 在本程序中，AD7606的中断须为下降沿触发(AD转换结束后),否则会有问题
 void AD7606_handle(void){
 	uint8_t i = 0;
 	
   AD7606_Read4CH();
 	
-	for(i=0;i<4;i++) 
-	{
-		printf("AD7606 = 0x%x,i=%d\r\n",AD7606_BUF.shortbuf[0+i],i);//会造成阻塞，Wifi无法初始化
-		
+//	for(i=0;i<4;i++) 
+//	{
+//		printf("AD7606 = 0x%x,i=%d\r\n",AD7606_BUF.shortbuf[0+i],i);//会造成阻塞，Wifi无法初始化
+//		
+//	}
+		for(i=0;i<6;i++) 
+	{ 
+		txBuf[txCount]=AD7606_BUF.bytebuf[i];
+		txCount++;
 	}
-	//i = AD7606_BUF.bytebuf[0];
+	
+	if(txCount>=TX_BUF_LEN)
+	{
+		UsbSendData(txBuf,TX_BUF_LEN);
+		txCount=0;
+		LED_Toggle();
+	}
+//	i = AD7606_BUF.bytebuf[0];
 }

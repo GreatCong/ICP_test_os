@@ -63,13 +63,21 @@
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
-
+typedef enum 
+{
+  ICP = 0,
+  LED = 1,
+  BLUETOOTH = 2,
+  SD = 3
+} Module_TypeDef;
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+void PowerOn(Module_TypeDef module);
+void PowerOff(Module_TypeDef module);
+void LED_Toggle(void);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

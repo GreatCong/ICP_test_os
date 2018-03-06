@@ -130,6 +130,10 @@ static void customer_assert(const char* file, int line)
 // 		DRIVER_INT_HANDLE();
 // }
 
+// @ function: 
+// @ description:外部中端回调
+// @ input:
+// @ note:
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == WIFI_INT_Pin)

@@ -57,7 +57,16 @@
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
-
+GPIO_TypeDef* GPIO_PORT[4] = {ICP_EN_GPIO_Port, 
+                                LED_RED_GPIO_Port,
+																BT_EN_GPIO_Port, 
+                                WIFI_EN_GPIO_Port
+                                };
+const uint16_t GPIO_PIN[4] = {ICP_EN_Pin, 
+                                LED_RED_Pin,
+																BT_EN_Pin, 
+                                WIFI_EN_Pin
+                                };
 /* USER CODE END 1 */
 
 /** Configure pins as 
@@ -112,7 +121,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = AD_BUSY_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(AD_BUSY_GPIO_Port, &GPIO_InitStruct);
 
@@ -160,7 +169,49 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
+/**
+  * @brief  Turns selected Module On.
+  * @param  Module: Specifies the module to be set on. 
+  *   This parameter can be one of following parameters:
+  *     @arg ICP
+  *     @arg LED
+  *     @arg BLUETOOTH
+  *     @arg SD 
+  * @retval None
+  */
+void PowerOn(Module_TypeDef module)
+{	
+	if(module)//not ICP
+		HAL_GPIO_WritePin(GPIO_PORT[module], GPIO_PIN[module], GPIO_PIN_SET); 
+	else	HAL_GPIO_WritePin(GPIO_PORT[module], GPIO_PIN[module], GPIO_PIN_RESET); 
+}
 
+/**
+  * @brief  Turns selected Module Off.
+  * @param  Module: Specifies the module to be set off. 
+  *   This parameter can be one of following parameters:
+  *     @arg ICP
+  *     @arg LED
+  *     @arg BLUETOOTH
+  *     @arg SD 
+  * @retval None
+  */
+void PowerOff(Module_TypeDef module)
+{	
+	if(module)//not ICP
+		HAL_GPIO_WritePin(GPIO_PORT[module], GPIO_PIN[module], GPIO_PIN_RESET); 
+	else	HAL_GPIO_WritePin(GPIO_PORT[module], GPIO_PIN[module], GPIO_PIN_SET); 
+}
+
+/**
+  * @brief  Toggles the LED.
+  * @param  None
+  * @retval None
+  */
+void LED_Toggle(void)
+{
+  HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+}
 /* USER CODE END 2 */
 
 /**
