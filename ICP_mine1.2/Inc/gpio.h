@@ -68,7 +68,8 @@ typedef enum
   ICP = 0,
   LED = 1,
   BLUETOOTH = 2,
-  SD = 3
+	WIFI = 3,
+  SD = 4
 } Module_TypeDef;
 /* USER CODE END Private defines */
 

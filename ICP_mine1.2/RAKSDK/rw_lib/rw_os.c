@@ -14,8 +14,10 @@
 #include "rw_os.h"
 #include "cmsis_os.h"
 #include "bsp.h"
-#define RW_DRIVER_TASK_PRIO  (configMAX_PRIORITIES - 3) 
-#define RW_DRIVER_TASK_STACK_SIZE (800>>2)
+//#define RW_DRIVER_TASK_PRIO  (configMAX_PRIORITIES - 3) 
+//#define RW_DRIVER_TASK_STACK_SIZE (800>>2)
+#define RW_DRIVER_TASK_PRIO  (tskIDLE_PRIORITY + 4)
+#define RW_DRIVER_TASK_STACK_SIZE configMINIMAL_STACK_SIZE * 12//(800>>2)
 
 //创建任务接口
 void* rw_creat_task(RW_OS_TASK_PTR p_task)
@@ -120,9 +122,35 @@ int rw_pend_sem(void* p_sem, uint32_t timeout)
     return RW_OS_ERROR;
 }
 
+//与1.07的库兼容
+void rw_enter_critical()
+{
+		portENTER_CRITICAL();
+}
 
+void rw_exit_critical()
+{
+		portEXIT_CRITICAL();
+}
 
+int rw_post_drv_sem(void* p_sem)
+{
+    portBASE_TYPE taskWoken = pdFALSE;
 
+    if(p_sem == NULL) {
+        return RW_OS_ERROR;
+    }
+
+    if (xSemaphoreGiveFromISR(p_sem, &taskWoken) != pdPASS) {
+        return RW_OS_ERROR;
+    }
+
+    if(taskWoken == pdTRUE) {
+        portEND_SWITCHING_ISR(taskWoken);
+
+    }
+    return RW_OS_OK;
+}
 
 
 

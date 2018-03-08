@@ -146,13 +146,14 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
+	//OS下不会执行到这里来的
 	uint8_t buf;
   while (1)
   {
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-		//不会执行到这里来的
 //		HAL_GPIO_TogglePin(LED_RED_GPIO_Port,LED_RED_Pin);
 //		HAL_Delay(1000);
 		HAL_Delay(10);

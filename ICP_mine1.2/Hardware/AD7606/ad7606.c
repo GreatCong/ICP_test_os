@@ -1,3 +1,12 @@
+/**
+ *************************************************************************************
+ * @file AD7606.c
+ * @author liucongjun
+ * @version 1.0
+ * @date 2018-3-7
+ * @brief AD7606的驱动
+ *************************************************************************************
+*/
 #include "ad7606.h"
 #include "gpio.h"
 #include "usart.h"
@@ -17,13 +26,37 @@ PA4 -I- BUSY
 PA2 -O- ICP_EN
 */
 
+//配置读取的通道
+//#define AD_CH1 1
+//#define AD_CH2 1<<1
+//#define AD_CH3 1<<2
+#define AD_CH4 1<<3
+
 /*USB*/
 #include "usbd_cdc_if.h"
 
 #define TX_BUF_LEN 1024*6
-uint8_t txBuf[TX_BUF_LEN];//USB传输的缓冲数组
-uint16_t txCount=0;
+uint8_t txBuf_usb[TX_BUF_LEN];//USB传输的缓冲数组
+uint16_t txCount_usb=0;
 /*USB end*/
+
+/*AD queue*/
+#include "my_queue.h"
+#define AD_QUEUE_SIZE 1200
+QueueArray_type myAD_queue;
+Elemtype myAD_buff[AD_QUEUE_SIZE] = {0};//要根据实际速度更改
+//Elemtype myAD_test_data2[60]={0x258,0x28c,0x2bf,0x2f2,0x323,0x351,0x37d,0x3a6,0x3cb,0x3ec,
+//	                            0x409,0x420,0x433,0x441,0x449,0x44b,0x449,0x441,0x433,0x420,
+//	                            0x409,0x3ec,0x3cb,0x3a6,0x37d,0x352,0x323,0x2f2,0x2bf,0x28c,
+//	                            0x258,0x223,0x1f0,0x1bd,0x18c,0x15e,0x132,0x109,0xe4, 0xc3,
+//	                            0xa6, 0x8f, 0x7c, 0x6e, 0x66, 0x64, 0x66, 0x6e, 0x7c, 0x8f,
+//	                            0xa6, 0xc3, 0xe4, 0x109,0x132,0x15d,0x18c,0x1bd,0x1f0,0x223,};
+/*AD queue end*/
+
+#define OS2(State)	HAL_GPIO_WritePin(AD_OS2_GPIO_Port,AD_OS2_Pin,(GPIO_PinState)State)
+#define OS1(State)	HAL_GPIO_WritePin(AD_OS1_GPIO_Port,AD_OS1_Pin,(GPIO_PinState)State)
+#define OS0(State)	HAL_GPIO_WritePin(AD_OS0_GPIO_Port,AD_OS0_Pin,(GPIO_PinState)State)
+#define SPI_CS(State)	HAL_GPIO_WritePin(AD_CS_GPIO_Port,AD_CS_Pin,(GPIO_PinState)State)
 
 #define OS2(State)	HAL_GPIO_WritePin(AD_OS2_GPIO_Port,AD_OS2_Pin,(GPIO_PinState)State)
 #define OS1(State)	HAL_GPIO_WritePin(AD_OS1_GPIO_Port,AD_OS1_Pin,(GPIO_PinState)State)
@@ -39,6 +72,9 @@ void AD7606_Init(void)
 	#ifdef AD7606_SOFT_SPI
 	AD7606_GPIO_SPI();
 	#endif
+	
+	//初始化队列
+  Init_queue(&myAD_queue,myAD_buff,AD_QUEUE_SIZE);
 }
 
 //  @ fuction:  
@@ -207,7 +243,9 @@ void AD7606_GPIO_SPI(void){
 //  @ note: 在rw_lib_platform.c中，wifi模块的中断中调用
 //          注意 在本程序中，AD7606的中断须为下降沿触发(AD转换结束后),否则会有问题
 void AD7606_handle(void){
-	uint8_t i = 0;
+//	uint8_t i = 0;
+	int channel_data16[4] = {0};
+//	static int temp;
 	
   AD7606_Read4CH();
 	
@@ -216,17 +254,61 @@ void AD7606_handle(void){
 //		printf("AD7606 = 0x%x,i=%d\r\n",AD7606_BUF.shortbuf[0+i],i);//会造成阻塞，Wifi无法初始化
 //		
 //	}
-		for(i=0;i<6;i++) 
-	{ 
-		txBuf[txCount]=AD7606_BUF.bytebuf[i];
-		txCount++;
-	}
+	//USB发送
+//	for(i=6;i<8;i++) 
+//	{ 
+//		txBuf[txCount]=AD7606_BUF.bytebuf[i];
+//		txCount++;
+//	}
 	
-	if(txCount>=TX_BUF_LEN)
+	#ifdef AD_CH1
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[0];
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[1];
+	#endif
+	#ifdef AD_CH2
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[2];
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[3];
+	#endif
+	#ifdef AD_CH3
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[4];
+	txBuf[txCount++]=AD7606_BUF.bytebuf[5];
+	#endif
+	#ifdef AD_CH4
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[6];
+	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[7];	
+	#endif
+	
+	if(txCount_usb >= TX_BUF_LEN)
 	{
-		UsbSendData(txBuf,TX_BUF_LEN);
-		txCount=0;
+		UsbSendData(txBuf_usb,TX_BUF_LEN);
+		txCount_usb = 0;
 		LED_Toggle();
 	}
-//	i = AD7606_BUF.bytebuf[0];
+	//测试
+//			if(temp > 59) temp = 0;
+//			EnQueue(&myAD_queue,myAD_test_data2[temp++]);
+//			EnQueue(&myAD_queue,myAD_test_data2[temp++]);
+//			EnQueue(&myAD_queue,myAD_test_data2[temp++]);
+//			EnQueue(&myAD_queue,myAD_test_data2[temp++]);
+	
+	channel_data16[0] = AD7606_BUF.bytebuf[0]<<8 | AD7606_BUF.bytebuf[1];
+	channel_data16[1] = AD7606_BUF.bytebuf[2]<<8 | AD7606_BUF.bytebuf[3];
+	channel_data16[2] = AD7606_BUF.bytebuf[4]<<8 | AD7606_BUF.bytebuf[5];
+	channel_data16[3] = AD7606_BUF.bytebuf[6]<<8 | AD7606_BUF.bytebuf[7];
+	
+	//wifi发送
+//	channel_data16[0] = AD7606_BUF.bytebuf[0]*255+AD7606_BUF.bytebuf[1];
+	#ifdef AD_CH1
+	EnQueue(&myAD_queue,channel_data16[0]);
+	#endif
+	#ifdef AD_CH2
+	EnQueue(&myAD_queue,channel_data16[1]);
+	#endif
+	#ifdef AD_CH3
+	EnQueue(&myAD_queue,channel_data16[2]);
+	#endif
+	#ifdef AD_CH4
+	EnQueue(&myAD_queue,channel_data16[3]);
+	#endif
+	
 }
