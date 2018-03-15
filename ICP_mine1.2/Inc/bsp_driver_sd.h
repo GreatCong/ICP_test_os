@@ -1,8 +1,8 @@
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+ ******************************************************************************
+  * @file    bsp_driver_sd.h for F4 (based on stm324x9i_eval_sd.h)
+  * @brief   This file contains the common defines and functions prototypes for 
+  *          the bsp_driver_sd.c driver.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -48,82 +48,69 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __STM32F4_SD_H
+#define __STM32F4_SD_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private define ------------------------------------------------------------*/
-
-#define WIFI_PWD_Pin GPIO_PIN_3
-#define WIFI_PWD_GPIO_Port GPIOC
-#define BAT_ADC1_Pin GPIO_PIN_0
-#define BAT_ADC1_GPIO_Port GPIOA
-#define BT_EN_Pin GPIO_PIN_1
-#define BT_EN_GPIO_Port GPIOA
-#define ICP_EN_Pin GPIO_PIN_2
-#define ICP_EN_GPIO_Port GPIOA
-#define AD_CONVEST_Pin GPIO_PIN_3
-#define AD_CONVEST_GPIO_Port GPIOA
-#define AD_BUSY_Pin GPIO_PIN_4
-#define AD_BUSY_GPIO_Port GPIOA
-#define AD_BUSY_EXTI_IRQn EXTI4_IRQn
-#define AD_SPI1_SCK_Pin GPIO_PIN_5
-#define AD_SPI1_SCK_GPIO_Port GPIOA
-#define AD_SPI1_MISO_Pin GPIO_PIN_6
-#define AD_SPI1_MISO_GPIO_Port GPIOA
-#define AD_SPI1_MOSI_Pin GPIO_PIN_7
-#define AD_SPI1_MOSI_GPIO_Port GPIOA
-#define AD_CS_Pin GPIO_PIN_4
-#define AD_CS_GPIO_Port GPIOC
-#define AD_OS0_Pin GPIO_PIN_5
-#define AD_OS0_GPIO_Port GPIOC
-#define AD_OS1_Pin GPIO_PIN_0
-#define AD_OS1_GPIO_Port GPIOB
-#define AD_OS2_Pin GPIO_PIN_1
-#define AD_OS2_GPIO_Port GPIOB
-#define LED_RED_Pin GPIO_PIN_8
-#define LED_RED_GPIO_Port GPIOA
-#define WIFI_SPI3_SCK_Pin GPIO_PIN_3
-#define WIFI_SPI3_SCK_GPIO_Port GPIOB
-#define WIFI_SPI3_MISO_Pin GPIO_PIN_4
-#define WIFI_SPI3_MISO_GPIO_Port GPIOB
-#define WIFI_SPI3_MOSI_Pin GPIO_PIN_5
-#define WIFI_SPI3_MOSI_GPIO_Port GPIOB
-#define WIFI_INT_Pin GPIO_PIN_6
-#define WIFI_INT_GPIO_Port GPIOB
-#define WIFI_INT_EXTI_IRQn EXTI9_5_IRQn
-#define WIFI_CS_Pin GPIO_PIN_7
-#define WIFI_CS_GPIO_Port GPIOB
-#define WIFI_EN_Pin GPIO_PIN_9
-#define WIFI_EN_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
+/* Exported types --------------------------------------------------------*/ 
+/** 
+  * @brief SD Card information structure 
   */
- #define USE_FULL_ASSERT    1U 
+#define BSP_SD_CardInfo HAL_SD_CardInfoTypeDef
 
-/* USER CODE BEGIN Private defines */
+/* Exported constants --------------------------------------------------------*/ 
+/**
+  * @brief  SD status structure definition  
+  */     
+#define   MSD_OK                        ((uint8_t)0x00)
+#define   MSD_ERROR                     ((uint8_t)0x01)
 
-/* USER CODE END Private defines */
+/** 
+  * @brief  SD transfer state definition  
+  */     
+#define   SD_TRANSFER_OK                ((uint8_t)0x00)
+#define   SD_TRANSFER_BUSY              ((uint8_t)0x01)
 
-#ifdef __cplusplus
- extern "C" {
+#define SD_PRESENT               ((uint8_t)0x01)
+#define SD_NOT_PRESENT           ((uint8_t)0x00)
+#define SD_DATATIMEOUT           ((uint32_t)100000000)
+
+#ifdef OLD_API
+/* kept to avoid issue when migrating old projects. */
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */ 
+#else
+/* USER CODE BEGIN BSP_H_CODE */
+/* Exported functions --------------------------------------------------------*/   
+uint8_t BSP_SD_Init(void);
+uint8_t BSP_SD_ITConfig(void);
+void    BSP_SD_DetectIT(void);
+void    BSP_SD_DetectCallback(void);
+uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks, uint32_t Timeout);
+uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks, uint32_t Timeout);
+uint8_t BSP_SD_ReadBlocks_DMA(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks);
+uint8_t BSP_SD_WriteBlocks_DMA(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks);
+uint8_t BSP_SD_Erase(uint32_t StartAddr, uint32_t EndAddr);
+void BSP_SD_IRQHandler(void);
+void BSP_SD_DMA_Tx_IRQHandler(void);
+void BSP_SD_DMA_Rx_IRQHandler(void);
+uint8_t BSP_SD_GetCardState(void);
+void    BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
+uint8_t BSP_SD_IsDetected(void);
+/* USER CODE END BSP_H_CODE */
 #endif
-void _Error_Handler(char *, int);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+   
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MAIN_H__ */
+#endif /* __STM32F4_SD_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -1,8 +1,7 @@
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file   fatfs.c
+  * @brief  Code for fatfs applications
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -47,83 +46,41 @@
   ******************************************************************************
   */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#include "fatfs.h"
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+uint8_t retSD;    /* Return value for SD */
+char SDPath[4];   /* SD logical drive path */
+FATFS SDFatFS;    /* File system object for SD logical drive */
+FIL SDFile;       /* File object for SD */
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN Variables */
 
-/* USER CODE END Includes */
+/* USER CODE END Variables */    
 
-/* Private define ------------------------------------------------------------*/
+void MX_FATFS_Init(void) 
+{
+  /*## FatFS: Link the SD driver ###########################*/
+  retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
-#define WIFI_PWD_Pin GPIO_PIN_3
-#define WIFI_PWD_GPIO_Port GPIOC
-#define BAT_ADC1_Pin GPIO_PIN_0
-#define BAT_ADC1_GPIO_Port GPIOA
-#define BT_EN_Pin GPIO_PIN_1
-#define BT_EN_GPIO_Port GPIOA
-#define ICP_EN_Pin GPIO_PIN_2
-#define ICP_EN_GPIO_Port GPIOA
-#define AD_CONVEST_Pin GPIO_PIN_3
-#define AD_CONVEST_GPIO_Port GPIOA
-#define AD_BUSY_Pin GPIO_PIN_4
-#define AD_BUSY_GPIO_Port GPIOA
-#define AD_BUSY_EXTI_IRQn EXTI4_IRQn
-#define AD_SPI1_SCK_Pin GPIO_PIN_5
-#define AD_SPI1_SCK_GPIO_Port GPIOA
-#define AD_SPI1_MISO_Pin GPIO_PIN_6
-#define AD_SPI1_MISO_GPIO_Port GPIOA
-#define AD_SPI1_MOSI_Pin GPIO_PIN_7
-#define AD_SPI1_MOSI_GPIO_Port GPIOA
-#define AD_CS_Pin GPIO_PIN_4
-#define AD_CS_GPIO_Port GPIOC
-#define AD_OS0_Pin GPIO_PIN_5
-#define AD_OS0_GPIO_Port GPIOC
-#define AD_OS1_Pin GPIO_PIN_0
-#define AD_OS1_GPIO_Port GPIOB
-#define AD_OS2_Pin GPIO_PIN_1
-#define AD_OS2_GPIO_Port GPIOB
-#define LED_RED_Pin GPIO_PIN_8
-#define LED_RED_GPIO_Port GPIOA
-#define WIFI_SPI3_SCK_Pin GPIO_PIN_3
-#define WIFI_SPI3_SCK_GPIO_Port GPIOB
-#define WIFI_SPI3_MISO_Pin GPIO_PIN_4
-#define WIFI_SPI3_MISO_GPIO_Port GPIOB
-#define WIFI_SPI3_MOSI_Pin GPIO_PIN_5
-#define WIFI_SPI3_MOSI_GPIO_Port GPIOB
-#define WIFI_INT_Pin GPIO_PIN_6
-#define WIFI_INT_GPIO_Port GPIOB
-#define WIFI_INT_EXTI_IRQn EXTI9_5_IRQn
-#define WIFI_CS_Pin GPIO_PIN_7
-#define WIFI_CS_GPIO_Port GPIOB
-#define WIFI_EN_Pin GPIO_PIN_9
-#define WIFI_EN_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
- #define USE_FULL_ASSERT    1U 
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
-
-#ifdef __cplusplus
- extern "C" {
-#endif
-void _Error_Handler(char *, int);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
-#ifdef __cplusplus
+  /* USER CODE BEGIN Init */
+  /* additional user code for init */     
+  /* USER CODE END Init */
 }
-#endif
 
-#endif /* __MAIN_H__ */
+/**
+  * @brief  Gets Time from RTC 
+  * @param  None
+  * @retval Time in DWORD
+  */
+DWORD get_fattime(void)
+{
+  /* USER CODE BEGIN get_fattime */
+  return 0;
+  /* USER CODE END get_fattime */  
+}
+
+/* USER CODE BEGIN Application */
+     
+/* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

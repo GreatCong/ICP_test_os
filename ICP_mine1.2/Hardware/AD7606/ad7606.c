@@ -15,7 +15,7 @@
 #include "stm32f4xx.h"
 #include "spi.h"
 
-/*
+/* AD7606引脚定义
 PC5 -O- OS 0							
 PB0 -O- OS 1
 PB1 -O- OS 2
@@ -32,17 +32,19 @@ PA2 -O- ICP_EN
 //#define AD_CH3 1<<2
 #define AD_CH4 1<<3
 
+#include "my_task.h"//包含一些宏定义
+
 /*USB*/
 #include "usbd_cdc_if.h"
 
-#define TX_BUF_LEN 1024*6
-uint8_t txBuf_usb[TX_BUF_LEN];//USB传输的缓冲数组
+//#define TX_BUF_LEN_USB 1024*6
+uint8_t txBuf_usb[TX_BUF_LEN_USB];//USB传输的缓冲数组
 uint16_t txCount_usb=0;
 /*USB end*/
 
 /*AD queue*/
 #include "my_queue.h"
-#define AD_QUEUE_SIZE 1200
+//#define AD_QUEUE_SIZE 1200
 QueueArray_type myAD_queue;
 Elemtype myAD_buff[AD_QUEUE_SIZE] = {0};//要根据实际速度更改
 //Elemtype myAD_test_data2[60]={0x258,0x28c,0x2bf,0x2f2,0x323,0x351,0x37d,0x3a6,0x3cb,0x3ec,
@@ -65,6 +67,12 @@ Elemtype myAD_buff[AD_QUEUE_SIZE] = {0};//要根据实际速度更改
 
 union _AD7606_BUF AD7606_BUF;
 
+/**functiion**/
+
+// @ function: AD7606_Init
+// @ description:初始化AD7606
+// @ input:
+// @ note:
 void AD7606_Init(void)
 {
 	AD7606_SetOsRate(AD_OS_NO);
@@ -278,9 +286,9 @@ void AD7606_handle(void){
 	txBuf_usb[txCount_usb++]=AD7606_BUF.bytebuf[7];	
 	#endif
 	
-	if(txCount_usb >= TX_BUF_LEN)
+	if(txCount_usb >= TX_BUF_LEN_USB)
 	{
-		UsbSendData(txBuf_usb,TX_BUF_LEN);
+		UsbSendData(txBuf_usb,TX_BUF_LEN_USB);
 		txCount_usb = 0;
 		LED_Toggle();
 	}

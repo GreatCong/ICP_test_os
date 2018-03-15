@@ -50,6 +50,9 @@
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "dma.h"
+#include "fatfs.h"
+#include "sdio.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -111,12 +114,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM3_Init();
   MX_ADC1_Init();
   MX_SPI3_Init();
   MX_USART6_UART_Init();
   MX_SPI1_Init();
   MX_TIM2_Init();
+  MX_SDIO_SD_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(BT_EN_GPIO_Port,BT_EN_Pin,GPIO_PIN_SET);
 	HAL_GPIO_WritePin(WIFI_EN_GPIO_Port,WIFI_EN_Pin,GPIO_PIN_SET);
@@ -129,6 +134,7 @@ int main(void)
 	HAL_Delay(200);
   AD_CONVEST_PWM_Init(10);//10kHz	
 	//SetBluetoothBaud(9600);//设置蓝牙的波特率
+	  MX_FATFS_Init();
 
   HAL_Delay(5000);//延长5s再开启蓝牙
 	

@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * File Name          : dma.c
+  * Description        : This file provides code for the configuration
+  *                      of all the requested memory to memory DMA transfers.
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -46,84 +46,49 @@
   *
   ******************************************************************************
   */
-
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
-
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
+#include "dma.h"
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-/* Private define ------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
+/* Configure DMA                                                              */
+/*----------------------------------------------------------------------------*/
 
-#define WIFI_PWD_Pin GPIO_PIN_3
-#define WIFI_PWD_GPIO_Port GPIOC
-#define BAT_ADC1_Pin GPIO_PIN_0
-#define BAT_ADC1_GPIO_Port GPIOA
-#define BT_EN_Pin GPIO_PIN_1
-#define BT_EN_GPIO_Port GPIOA
-#define ICP_EN_Pin GPIO_PIN_2
-#define ICP_EN_GPIO_Port GPIOA
-#define AD_CONVEST_Pin GPIO_PIN_3
-#define AD_CONVEST_GPIO_Port GPIOA
-#define AD_BUSY_Pin GPIO_PIN_4
-#define AD_BUSY_GPIO_Port GPIOA
-#define AD_BUSY_EXTI_IRQn EXTI4_IRQn
-#define AD_SPI1_SCK_Pin GPIO_PIN_5
-#define AD_SPI1_SCK_GPIO_Port GPIOA
-#define AD_SPI1_MISO_Pin GPIO_PIN_6
-#define AD_SPI1_MISO_GPIO_Port GPIOA
-#define AD_SPI1_MOSI_Pin GPIO_PIN_7
-#define AD_SPI1_MOSI_GPIO_Port GPIOA
-#define AD_CS_Pin GPIO_PIN_4
-#define AD_CS_GPIO_Port GPIOC
-#define AD_OS0_Pin GPIO_PIN_5
-#define AD_OS0_GPIO_Port GPIOC
-#define AD_OS1_Pin GPIO_PIN_0
-#define AD_OS1_GPIO_Port GPIOB
-#define AD_OS2_Pin GPIO_PIN_1
-#define AD_OS2_GPIO_Port GPIOB
-#define LED_RED_Pin GPIO_PIN_8
-#define LED_RED_GPIO_Port GPIOA
-#define WIFI_SPI3_SCK_Pin GPIO_PIN_3
-#define WIFI_SPI3_SCK_GPIO_Port GPIOB
-#define WIFI_SPI3_MISO_Pin GPIO_PIN_4
-#define WIFI_SPI3_MISO_GPIO_Port GPIOB
-#define WIFI_SPI3_MOSI_Pin GPIO_PIN_5
-#define WIFI_SPI3_MOSI_GPIO_Port GPIOB
-#define WIFI_INT_Pin GPIO_PIN_6
-#define WIFI_INT_GPIO_Port GPIOB
-#define WIFI_INT_EXTI_IRQn EXTI9_5_IRQn
-#define WIFI_CS_Pin GPIO_PIN_7
-#define WIFI_CS_GPIO_Port GPIOB
-#define WIFI_EN_Pin GPIO_PIN_9
-#define WIFI_EN_GPIO_Port GPIOB
+/* USER CODE BEGIN 1 */
 
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
+/* USER CODE END 1 */
+
+/** 
+  * Enable DMA controller clock
   */
- #define USE_FULL_ASSERT    1U 
+void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
-/* USER CODE BEGIN Private defines */
+  /* DMA interrupt init */
+  /* DMA2_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+  /* DMA2_Stream6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
 
-/* USER CODE END Private defines */
-
-#ifdef __cplusplus
- extern "C" {
-#endif
-void _Error_Handler(char *, int);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
-#ifdef __cplusplus
 }
-#endif
 
-#endif /* __MAIN_H__ */
+/* USER CODE BEGIN 2 */
+
+/* USER CODE END 2 */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -12,6 +12,8 @@
 #include "rw_app.h"
 #include "tim.h"
 #include "usbd_cdc_if.h"
+#include "fatfs.h"
+#include "my_fatfs.h"
 
 #define SIZE 53
 
@@ -27,7 +29,7 @@ Elemtype myAD_test_data1[60]={0x258,0x28c,0x2bf,0x2f2,0x323,0x351,0x37d,0x3a6,0x
 	                            0xa6, 0x8f, 0x7c, 0x6e, 0x66, 0x64, 0x66, 0x6e, 0x7c, 0x8f,
 	                            0xa6, 0xc3, 0xe4, 0x109,0x132,0x15d,0x18c,0x1bd,0x1f0,0x223,};
 #include "my_queue.h"
-#define AD_QUEUE_SIZE 1200
+//#define AD_QUEUE_SIZE 1200
 extern QueueArray_type myAD_queue;
 Elemtype my_send[AD_QUEUE_SIZE+100] = {0};
 
@@ -140,7 +142,8 @@ void StartTest_Task(void const * argument)
   {
 //		uint8_t xx[] = "abc";
 //	  UsbSendData(xx,3);
-		osDelay(10);
+//		fat_test();//写文件会影响到wifi,添加这个函数偶尔会出现丢包现象
+		osDelay(5000);
   }
   /* USER CODE END StartTest_Task */
 }
